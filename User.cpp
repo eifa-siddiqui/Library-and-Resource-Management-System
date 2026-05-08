@@ -11,7 +11,7 @@ User::User(const std::string& id,
 {}
 
 bool User::checkPassword(const std::string& input) const {
-    return password == input;
+    return password == input; //if equal then true 
 }
 
 std::string User::getId()        const { return id;        }
