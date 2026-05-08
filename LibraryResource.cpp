@@ -53,12 +53,10 @@ void LibraryResource::setISBN(const string& i) {
     if (i.empty())
         throw invalid_argument("ISBN cannot be empty.");
     if (i.size() != 13)
-        throw invalid_argument("ISBN must be exactly 13 digits. You entered "
-                               + to_string(i.size()) + " characters.");
+        throw invalid_argument("ISBN must be exactly 13 digits. You entered " + to_string(i.size()) + " characters.");
     for (int j = 0; j < (int)i.size(); j++)
         if (i[j] < '0' || i[j] > '9')
-            throw invalid_argument("ISBN must contain digits only. Invalid character: "
-                                   + string(1, i[j]));
+            throw invalid_argument("ISBN must contain digits only. Invalid character: "+ string(1, i[j]));//concatenation
     isbn = i;
 }
 
@@ -107,7 +105,7 @@ void LibraryResource::addReview(const Review& r) {
 }
 
 const vector<Review>& LibraryResource::getReviews() const {
-    return reviews;
+    return reviews; //this pointer used to return
 }
 
 // ─── Reservation queue ────────────────────────────────────────────────────────
