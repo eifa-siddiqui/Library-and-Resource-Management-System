@@ -28,7 +28,7 @@ LibraryResource::LibraryResource(const string& isbn, const string& title,
 
 LibraryResource::~LibraryResource() {}
 
-// ─── Setters (taken directly from rev_mem.cpp — logic unchanged) ────────────
+// ─── Setters (taken directly from rev_mem.cpp — logic is same ) ────────────
 
 void LibraryResource::setAvailable(bool val) { isavailable = val; }
 bool LibraryResource::isAvailable()          const { return isavailable; }
