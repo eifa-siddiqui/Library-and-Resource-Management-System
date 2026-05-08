@@ -6,6 +6,7 @@
 using namespace std;
 
 // Returns true if the given timestamp falls on today's calendar date
+//it is helper funct and canbe used within this cpp file only
 static bool isToday(time_t t) {
     time_t now       = time(nullptr);
     tm*    todayTm   = localtime(&now);
@@ -20,7 +21,7 @@ static bool isToday(time_t t) {
 Member::Member(const string& id, const string& firstName, const string& lastName,
                const string& password, const string& email, const string& address)
     : User(id, firstName, lastName, password, email, address),
-      balance(0.0), status(STANDARD)
+      balance(0.0), status(STANDARD), pending_fine(0.0)
 {}
 
 Member::~Member() {
@@ -29,7 +30,7 @@ Member::~Member() {
 
 // ─── Overrides ────────────────────────────────────────────────────────────────
 
-// Incorporates the dashboard display pattern from baap_code.cpp
+// Incorporates the dashboard display pattern from rev_mem.cpp
 void Member::displayDashboard() const {
     cout << "===== Member Dashboard =====\n";
     cout << "User ID : " << id << "\n";
@@ -46,12 +47,32 @@ string Member::getRole() const { return "MEMBER"; }
 
 // ─── Balance ──────────────────────────────────────────────────────────────────
 
-// depositAmount — validation logic taken directly from baap_code.cpp
+// depositAmount — validation logic taken directly from rev_mem.cpp
 void Member::depositAmount(double amount) {
     if (amount <= 0)
         throw invalid_argument("Deposit amount must be greater than zero.");
-    balance += amount;
-    cout << "PKR " << amount << " deposited. New balance: PKR " << balance << endl;
+           cout << "PKR " << amount << " deposited.\n"; //display before changing the amount because of pending fine
+     if(pending_fine > 0)
+    {
+        if(amount >= pending_fine)
+        {cout << "PKR " << pending_fine << " used to clear pending fine.\n";
+            amount -= pending_fine;
+            pending_fine = 0;
+            balance += amount;
+        }
+        else
+        { //pending fine was still to be remained is:deposited amount was not enough to make pendinf_fine 0
+              cout << "PKR " << amount<< " used toward pending fine.\n";
+                 pending_fine -= amount; // amount will  obv become 0 here
+            amount = 0;
+        }
+    }
+    else //no pending_fine was there
+    {
+        balance += amount;
+    }
+    cout << "Current balance: PKR " << balance << endl;
+cout << "Pending fine: PKR " << pending_fine << endl;
 }
 
 double Member::getBalance()          const { return balance; }
@@ -62,6 +83,7 @@ void Member::setBalance(double amount)     { balance = amount; }
 void Member::deductBalance(double amount) {
     if (amount >= balance) {
         cout << "Fine (PKR " << amount << ") exceeds balance. Balance set to 0.\n";
+        pending_fine += (amount - balance);
         balance = 0;
     } else {
         balance -= amount;
@@ -71,7 +93,7 @@ void Member::deductBalance(double amount) {
 
 // ─── Borrow management ────────────────────────────────────────────────────────
 
-// issueBook — core logic from baap_code.cpp, adapted:
+// issueBook — core logic from rev_mem.cpp, adapted:
 //   • Checks daily borrow limit (throws BorrowLimitException if >= 2 today)
 //   • Uses 14-day borrow period instead of 7
 //   • Passes member ID to BorrowRecord (required for file persistence in PR 5)
@@ -105,7 +127,7 @@ void Member::returnBook(const string& isbn) {
          << "\". Admin will complete the process.\n";
 }
 
-// reserveBook — availability check from baap_code.cpp; adapted to use addToReservation
+// reserveBook — availability check from rev_mem.cpp; adapted to use addToReservation
 void Member::reserveBook(LibraryResource* r) {
     if (r->isAvailable()) {
         cout << "\"" << r->getTitle() << "\" is available — just issue it.\n";

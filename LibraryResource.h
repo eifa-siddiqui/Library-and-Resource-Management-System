@@ -38,7 +38,7 @@ public:
                     const std::string& genre,
                     BookCategory       category);
 
-    // ---------- Setters (validation from baap_code.cpp — unchanged) ----------
+    // ---------- Setters (validation from rev_mem.cpp — unchanged) ----------
     void setAvailable(bool val);
     bool isAvailable()                        const;
     void setTitle(const std::string& t);
