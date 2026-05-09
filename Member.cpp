@@ -21,7 +21,7 @@ static bool isToday(time_t t) {
 Member::Member(const string& id, const string& firstName, const string& lastName,
                const string& password, const string& email, const string& address)
     : User(id, firstName, lastName, password, email, address),
-      balance(0.0), status(STANDARD), pending_fine(0.0)
+      balance(0.0), pending_fine(0.0), status(STANDARD)
 {}
 
 Member::~Member() {
