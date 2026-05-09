@@ -1,2 +1,0 @@
-ADMIN|A001|System|Admin|admin123|admin@lib.com|Library
-MEMBER|M001|EIfa|SIddiqui|eifa123|eifa@gmail.com|house a|1300|STANDARD

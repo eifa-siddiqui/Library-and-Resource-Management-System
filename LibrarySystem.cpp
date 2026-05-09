@@ -208,8 +208,12 @@ void LibrarySystem::displayAllUsers() const {
 // ── Resource management ───────────────────────────────────────────────────────
 
 bool LibrarySystem::addResource(LibraryResource* r) {
-    if (findResource(r->getIsbn())) {
-        cout << RED "ISBN " RST << r->getIsbn() << RED " already exists.\n" RST;
+    LibraryResource* existing = findResource(r->getIsbn());
+    if (existing) {
+        cout << RED "ISBN " RST << r->getIsbn()
+             << RED " is already registered to \"" RST << existing->getTitle()
+             << RED "\" (" RST << existing->getType() << RED ").\n" RST;
+        cout << YLW "Each edition or format must have its own unique ISBN.\n" RST;
         delete r;
         return false;
     }
@@ -938,6 +942,17 @@ LibraryResource* LibrarySystem::promptNewResource() {
     BookCategory cat = (type == 2) ? BookCategory::FICTION : BookCategory::NON_FICTION;
 
     string isbn   = readLine(MAG "ISBN            : " RST);
+    {
+        LibraryResource* existing = findResource(isbn);
+        if (existing) {
+            cout << RED "\nISBN " RST << isbn << RED " is already registered to:\n" RST;
+            cout << BLU "  Title : " RST << existing->getTitle()  << "\n";
+            cout << BLU "  Author: " RST << existing->getWriter() << "\n";
+            cout << BLU "  Type  : " RST << existing->getType()   << "\n";
+            cout << YLW "Each edition or format must have its own unique ISBN. Use a different ISBN.\n" RST;
+            return nullptr;
+        }
+    }
     string title  = readLine(MAG "Title           : " RST);
     string writer = readLine(MAG "Author/Writer   : " RST);
     int    year   = readInt(MAG  "Publication Year: " RST);
