@@ -35,53 +35,53 @@ bool LibraryResource::isAvailable()          const { return isavailable; }
 
 void LibraryResource::setTitle(const string& t) {
     if (t.empty())
-        throw invalid_argument("Title cannot be empty.");
+        throw invalid_argument("\033[31m Title cannot be empty.\033[0m");
     for (int i = 0; i < (int)t.size(); i++)
         if (t[i] != ' ') { title = t; return; }
-    throw invalid_argument("Title cannot be only spaces.");
+    throw invalid_argument("\033[31m Title cannot be only spaces.\033[0m");
 }
 
 void LibraryResource::setWriter(const string& w) {
     if (w.empty())
-        throw invalid_argument("Writer name cannot be empty.");
+        throw invalid_argument("\033[31m Writer name cannot be empty.\033[0m");
     for (int i = 0; i < (int)w.size(); i++)
         if (w[i] != ' ') { writer = w; return; }
-    throw invalid_argument("Writer name cannot be only spaces.");
+    throw invalid_argument("\033[31m Writer name cannot be only spaces.\033[0m");
 }
 
 void LibraryResource::setISBN(const string& i) {
     if (i.empty())
-        throw invalid_argument("ISBN cannot be empty.");
+        throw invalid_argument("\033[31m ISBN cannot be empty.\033[0m");
     if (i.size() != 13)
-        throw invalid_argument("ISBN must be exactly 13 digits. You entered "
-                               + to_string(i.size()) + " characters.");
+        throw invalid_argument("\033[31m ISBN must be exactly 13 digits. You entered "
+                               + to_string(i.size()) + " characters.\033[0m");
     for (int j = 0; j < (int)i.size(); j++)
         if (i[j] < '0' || i[j] > '9')
-            throw invalid_argument("ISBN must contain digits only. Invalid character: "
+            throw invalid_argument("\033[31m ISBN must contain digits only. Invalid character: \033[0m"
                                    + string(1, i[j]));
     isbn = i;
 }
 
 void LibraryResource::setOrigin(const string& o) {
     if (o.empty())
-        throw invalid_argument("Origin cannot be empty.");
+        throw invalid_argument("\033[31m Origin cannot be empty.\033[0m");
     for (int i = 0; i < (int)o.size(); i++)
         if (o[i] != ' ') { origin = o; return; }
-    throw invalid_argument("Origin cannot be only spaces.");
+    throw invalid_argument("\033[31m Origin cannot be only spaces.\033[0m");
 }
 
 void LibraryResource::setLanguage(const string& l) {
     if (l.empty())
-        throw invalid_argument("Language cannot be empty.");
+        throw invalid_argument("\033[31m Language cannot be empty.\033[0m");
     for (int i = 0; i < (int)l.size(); i++)
         if (l[i] != ' ') { language = l; return; }
-    throw invalid_argument("Language cannot be only spaces.");
+    throw invalid_argument("\033[31m Language cannot be only spaces.\033[0m");
 }
 
 void LibraryResource::setPublicationYear(int y) {
     if (y < 1000 || y > 2026)
-        throw invalid_argument("Publication year " + to_string(y) +
-                               " is not valid. Must be between 1000 and 2026.");
+        throw invalid_argument("\033[31m Publication year " + to_string(y) +
+                               " is not valid. Must be between 1000 and 2026.\033[0m");
     publicationYear = y;
 }
 
