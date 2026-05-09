@@ -4,9 +4,15 @@
 #include "LibraryResource.h"
 #include "FineUtility.h"
 #include <iostream>
-#include <fstream>
 #include <ctime>
 using namespace std;
+
+#define RST "\033[0m"
+#define RED "\033[31m"
+#define GRN "\033[32m"
+#define YLW "\033[33m"
+#define BLU "\033[34m"
+#define CYN "\033[36m"
 
 // Formats a time_t as YYYY-MM-DD
 static string formatDate(time_t t) {
@@ -58,11 +64,11 @@ void Admin::processReturn(Member& member, BorrowRecord* record,
     // Notify the next person in the reservation queue
     if (record->getResource()->hasReservation()) {
         Member* next = record->getResource()->nextReservation();
-        cout << "RESERVATION NOTICE: \""
+        cout << GRN "RESERVATION NOTICE: \"" RST
              << record->getResource()->getTitle()
-             << "\" is now available.\n"
-             << "Next in queue: " << next->getFirstName()
-             << " " << next->getLastName() << " — please notify them.\n";
+             << GRN "\" is now available.\n" RST
+             << CYN "Next in queue: " RST << next->getFirstName()
+             << " " << next->getLastName() << " - please notify them.\n";
     }
 }
 
@@ -77,74 +83,62 @@ void Admin::generateFineNotice(BorrowRecord* record, double fine) {
 // ─── Reports ─────────────────────────────────────────────────────────────────
 
 void Admin::generateMemberReport(const vector<Member*>& members,
-                                  const string& fileName) {
-    ofstream f(fileName);
-    if (!f.is_open()) { cout << "Cannot open " << fileName << "\n"; return; }
-
+                                  const string& /*fileName*/) {
     time_t now = time(nullptr);
-    f << "=== MEMBER REPORT ===\n";
-    f << "Generated: " << ctime(&now);   // ctime adds its own newline
-    f << "\n";
+    cout << YLW "\n=== MEMBER REPORT ===\n" RST;
+    cout << BLU "Generated: " RST << ctime(&now);
+
+    if (members.empty()) { cout << YLW "No members registered.\n" RST; return; }
 
     for (Member* m : members) {
-        f << "Member: " << m->getFirstName() << " " << m->getLastName()
-          << " (" << m->getId() << ")"
-          << " | Status: " << statusStr(m->getStatus())
-          << " | Balance: PKR " << m->getBalance() << "\n";
+        cout << YLW "\n--------------------\n" RST;
+        cout << CYN "Member  : " RST << m->getFirstName() << " " << m->getLastName()
+             << " (" << m->getId() << ")\n";
+        cout << CYN "Status  : " RST << statusStr(m->getStatus()) << "\n";
+        cout << CYN "Balance : " RST << "PKR " << m->getBalance() << "\n";
 
         const vector<BorrowRecord*>& borrows = m->getBorrowedBooks();
-        if (borrows.empty()) {
-            f << "  No borrow history.\n\n";
-            continue;
-        }
+        if (borrows.empty()) { cout << BLU "  No borrow history.\n" RST; continue; }
 
-        f << "  Active Borrows:\n";
+        cout << BLU "  Active Borrows:\n" RST;
         bool hasActive = false;
         for (BorrowRecord* r : borrows) {
             if (!r->getIsReturned()) {
-                f << "    - \"" << r->getResource()->getTitle() << "\""
-                  << " (" << r->getResource()->getIsbn() << ")"
-                  << " | Issued: " << formatDate(r->getIssueDate())
-                  << " | Due: "    << formatDate(r->getDueDate()) << "\n";
+                cout << "    - \"" << r->getResource()->getTitle() << "\""
+                     << " (" << r->getResource()->getIsbn() << ")"
+                     << " | Issued: " << formatDate(r->getIssueDate())
+                     << " | Due: "    << formatDate(r->getDueDate()) << "\n";
                 hasActive = true;
             }
         }
-        if (!hasActive) f << "    None.\n";
+        if (!hasActive) cout << "    None.\n";
 
-        f << "  Returned:\n";
+        cout << BLU "  Returned:\n" RST;
         bool hasReturned = false;
         for (BorrowRecord* r : borrows) {
             if (r->getIsReturned()) {
-                f << "    - \"" << r->getResource()->getTitle() << "\""
-                  << " (" << r->getResource()->getIsbn() << ")"
-                  << " | Returned: " << formatDate(r->getReturnDate()) << "\n";
+                cout << "    - \"" << r->getResource()->getTitle() << "\""
+                     << " (" << r->getResource()->getIsbn() << ")"
+                     << " | Returned: " << formatDate(r->getReturnDate()) << "\n";
                 hasReturned = true;
             }
         }
-        if (!hasReturned) f << "    None.\n";
-        f << "\n";
+        if (!hasReturned) cout << "    None.\n";
     }
-
-    cout << "Member report written to " << fileName << "\n";
+    cout << YLW "\n====================\n" RST;
 }
 
 void Admin::generateResourceReport(const vector<LibraryResource*>& resources,
                                     const vector<Member*>& members,
-                                    const string& fileName) {
-    ofstream f(fileName);
-    if (!f.is_open()) { cout << "Cannot open " << fileName << "\n"; return; }
-
+                                    const string& /*fileName*/) {
     time_t now = time(nullptr);
-    f << "=== RESOURCE REPORT ===\n";
-    f << "Generated: " << ctime(&now);
-    f << "\n";
+    cout << YLW "\n=== RESOURCE REPORT ===\n" RST;
+    cout << BLU "Generated: " RST << ctime(&now);
 
-    // Currently issued section — cross-reference members to find borrower
-    f << "Currently Issued:\n";
+    cout << YLW "\nCurrently Issued:\n" RST;
     bool anyIssued = false;
     for (LibraryResource* r : resources) {
         if (!r->isAvailable()) {
-            // Find which member has this resource
             string borrowerID = "Unknown";
             time_t dueDate    = 0;
             for (Member* m : members) {
@@ -154,27 +148,24 @@ void Admin::generateResourceReport(const vector<LibraryResource*>& resources,
             int overdueDays = (dueDate > 0 && now > dueDate)
                               ? static_cast<int>((now - dueDate) / 86400) : 0;
 
-            f << "  - \"" << r->getTitle() << "\" (" << r->getIsbn() << ")"
-              << " | Issued to: " << borrowerID
-              << " | Due: " << formatDate(dueDate);
+            cout << "  - \"" << r->getTitle() << "\" (" << r->getIsbn() << ")"
+                 << " | Issued to: " << borrowerID
+                 << " | Due: " << formatDate(dueDate);
             if (overdueDays > 0)
-                f << " | OVERDUE by " << overdueDays << " day(s)";
-            f << "\n";
+                cout << RED " | OVERDUE by " << overdueDays << " day(s)" RST;
+            cout << "\n";
             anyIssued = true;
         }
     }
-    if (!anyIssued) f << "  None.\n";
-    f << "\n";
+    if (!anyIssued) cout << "  None.\n";
 
-    // Available section
     int availCount = 0;
     for (LibraryResource* r : resources) if (r->isAvailable()) availCount++;
-    f << "Available Resources: " << availCount << "\n";
+    cout << YLW "\nAvailable Resources: " RST << availCount << "\n";
     for (LibraryResource* r : resources) {
         if (r->isAvailable())
-            f << "  - \"" << r->getTitle() << "\""
-              << " (" << r->getIsbn() << ") — " << r->getType() << "\n";
+            cout << "  - \"" << r->getTitle() << "\""
+                 << " (" << r->getIsbn() << ") - " << r->getType() << "\n";
     }
-
-    cout << "Resource report written to " << fileName << "\n";
+    cout << YLW "\n=======================\n" RST;
 }

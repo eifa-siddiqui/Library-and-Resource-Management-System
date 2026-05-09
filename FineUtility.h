@@ -11,5 +11,5 @@ public:
     static double calculateFine(int lateDays, BookCondition condition);
 
 private:
-    FineUtility() = delete; // Prevent instantiation
+    FineUtility() = delete; // Prevents instantiation
 };

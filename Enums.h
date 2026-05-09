@@ -1,6 +1,6 @@
 #pragma once
 
-// Condition of a resource when returned — drives fine calculation
+// Defines the book's condition on return - drives fine calculation
 enum class BookCondition {
     PERFECT,
     MINOR_DAMAGE,
@@ -8,8 +8,7 @@ enum class BookCondition {
     LOST
 };
 
-// Membership tier — plain enum (not enum class) so rev_mem.cpp's
-// Member class can initialize with status(STANDARD) without a scope prefix.
+// Status assigned to different members for additional perks
 enum MembershipStatus {
     STANDARD,
     PREMIUM,

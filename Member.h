@@ -42,8 +42,9 @@ public:
     void issueBook(LibraryResource* r);           // throws BorrowLimitException if limit reached
     void returnBook(const std::string& isbn);     // marks record; Admin finalises the return
     void reserveBook(LibraryResource* r);         // prints message if available; queues if not
-    int  countTodaysBorrows()               const; // counts borrows issued today
-    void viewBorrowHistory()               const;
+    int  countTodaysBorrows() const;
+    bool hasOverdueBooks()    const; // true if any active borrow is past its due date
+    void viewBorrowHistory()  const;
 
     BorrowRecord* findActiveBorrow(const std::string& isbn);  // only non-returned records
     BorrowRecord* findBorrowRecord(const std::string& isbn);  // any record for this isbn

@@ -76,7 +76,18 @@ void Member::deductBalance(double amount) {
 //   • Checks daily borrow limit (throws BorrowLimitException if >= 2 today)
 //   • Uses 14-day borrow period instead of 7
 //   • Passes member ID to BorrowRecord (required for file persistence in PR 5)
+bool Member::hasOverdueBooks() const {
+    time_t now = time(nullptr);
+    for (BorrowRecord* r : borrowedBooks)
+        if (!r->getIsReturned() && r->getDueDate() < now)
+            return true;
+    return false;
+}
+
 void Member::issueBook(LibraryResource* r) {
+    if (hasOverdueBooks())
+        throw runtime_error("\033[31mYou have overdue book(s). Return them before borrowing more.\033[0m");
+
     if (countTodaysBorrows() >= 2)
         throw BorrowLimitException("\033[31mDaily borrow limit of 2 reached.\033[0m");
 
@@ -89,7 +100,20 @@ void Member::issueBook(LibraryResource* r) {
     BorrowRecord* record = new BorrowRecord(id, r, now, dueDate);
     borrowedBooks.push_back(record);
     r->setAvailable(false);
-    cout << "\033[32m\"\033[0m" << r->getTitle() << "\033[32m\" issued successfully. Due in 14 days.\n\033[0m";
+    cout << "\033[32m\"" << r->getTitle() << "\" issued successfully. Due in 14 days.\n\033[0m";
+
+    // Auto-upgrade status based on total borrows:
+    // 5+ borrows -> PREMIUM, 15+ borrows -> ELITE
+    int total = (int)borrowedBooks.size();
+    MembershipStatus newStatus = status;
+    if      (total >= 15) newStatus = ELITE;
+    else if (total >= 5)  newStatus = PREMIUM;
+
+    if (newStatus != status) {
+        status = newStatus;
+        string label = (status == ELITE) ? "ELITE" : "PREMIUM";
+        cout << "\033[33mCongratulations! Your membership has been upgraded to " << label << ".\n\033[0m";
+    }
 }
 
 // returnBook — marks the record only; Admin::processReturn sets isAvailable = true
@@ -108,6 +132,10 @@ void Member::returnBook(const string& isbn) {
 
 // reserveBook — availability check from rev_mem.cpp; adapted to use addToReservation
 void Member::reserveBook(LibraryResource* r) {
+    if (hasOverdueBooks()) {
+        cout << "\033[31mYou have overdue book(s). Return them before making reservations.\033[0m\n";
+        return;
+    }
     if (r->isAvailable()) {
         cout << "\033[32m\"" << r->getTitle() << "\033[32m\" is available — just issue it.\n\033[0m";
     } else {

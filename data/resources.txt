@@ -1,3 +1,3 @@
-SCIENCE|S001|Introduction to Physics|Halliday|2020|USA|English|Physics|NON_FICTION|1|Mechanics
-LITERATURE|L001|Pride and Prejudice|Austen|1813|UK|English|Romance|FICTION|1|Regency
+SCIENCE|S001|Introduction to Physics|Halliday|2020|USA|English|Physics|NON_FICTION|0|Mechanics
+LITERATURE|L001|Pride and Prejudice|Austen|1813|UK|English|Romance|FICTION|0|Regency
 MAGAZINE|M001|Science Today|Staff|2024|USA|English|Science|NON_FICTION|1|5|April

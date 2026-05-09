@@ -1,2 +1,9 @@
+=== MEMBER REPORT ===
+Generated: Sat May 09 21:48:17 2026
 
+Member: EIfa SIddiqui (M001) | Status: STANDARD | Balance: PKR 1300
+  Active Borrows:
+    - "Introduction to Physics" (S001) | Issued: 2026-05-09 | Due: 2026-05-23
+  Returned:
+    - "Introduction to Physics" (S001) | Returned: 2026-05-09
 
