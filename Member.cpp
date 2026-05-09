@@ -23,7 +23,6 @@ Member::Member(const string& id, const string& firstName, const string& lastName
     : User(id, firstName, lastName, password, email, address),
       balance(0.0), pending_fine(0.0), status(STANDARD)
 {}
-
 Member::~Member() {
     for (BorrowRecord* r : borrowedBooks) delete r;
 }
