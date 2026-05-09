@@ -6,6 +6,7 @@
 using namespace std;
 
 // Returns true if the given timestamp falls on today's calendar date
+//it is helper funct and canbe used within this cpp file only
 static bool isToday(time_t t) {
     time_t now       = time(nullptr);
     tm*    todayTm   = localtime(&now);
@@ -20,7 +21,7 @@ static bool isToday(time_t t) {
 Member::Member(const string& id, const string& firstName, const string& lastName,
                const string& password, const string& email, const string& address)
     : User(id, firstName, lastName, password, email, address),
-      balance(0.0), status(STANDARD)
+      balance(0.0), status(STANDARD), pending_fine(0.0)
 {}
 
 Member::~Member() {
@@ -29,7 +30,7 @@ Member::~Member() {
 
 // ─── Overrides ────────────────────────────────────────────────────────────────
 
-// Incorporates the dashboard display pattern from baap_code.cpp
+// Incorporates the dashboard display pattern from rev_mem.cpp
 void Member::displayDashboard() const {
     cout << "\033[33m===== Member Dashboard =====\n\033[0m";
     cout << "\033[36mUser ID : \033[0m" << id << "\n";
@@ -46,12 +47,12 @@ string Member::getRole() const { return "MEMBER"; }
 
 // ─── Balance ──────────────────────────────────────────────────────────────────
 
-// depositAmount — validation logic taken directly from baap_code.cpp
+// depositAmount — validation logic taken directly from rev_mem.cpp
 void Member::depositAmount(double amount) {
     if (amount <= 0)
-        throw invalid_argument("\033[31mDeposit amount must be greater than zero.\033[0m");
+        throw invalid_argument("Deposit amount must be greater than zero.");
     balance += amount;
-    cout << "\033[32m PKR \033[0m" << amount << " \033[32mdeposited. New balance: PKR \033[0m" << balance << endl;
+    cout << "PKR " << amount << " deposited. New balance: PKR " << balance << endl;
 }
 
 double Member::getBalance()          const { return balance; }
@@ -61,7 +62,7 @@ void Member::setBalance(double amount)     { balance = amount; }
 
 void Member::deductBalance(double amount) {
     if (amount >= balance) {
-        cout << "\033[35m Fine (PKR \033[0m" << amount << "/033[35m) exceeds balance. Balance set to 0.\n\033[0m";
+        cout << "Fine (PKR " << amount << ") exceeds balance. Balance set to 0.\n";
         balance = 0;
     } else {
         balance -= amount;
@@ -71,7 +72,7 @@ void Member::deductBalance(double amount) {
 
 // ─── Borrow management ────────────────────────────────────────────────────────
 
-// issueBook — core logic from baap_code.cpp, adapted:
+// issueBook — core logic from rev_mem.cpp, adapted:
 //   • Checks daily borrow limit (throws BorrowLimitException if >= 2 today)
 //   • Uses 14-day borrow period instead of 7
 //   • Passes member ID to BorrowRecord (required for file persistence in PR 5)
@@ -105,7 +106,7 @@ void Member::returnBook(const string& isbn) {
          << "\".\033[34m Admin will complete the process.\n\033[0m";
 }
 
-// reserveBook — availability check from baap_code.cpp; adapted to use addToReservation
+// reserveBook — availability check from rev_mem.cpp; adapted to use addToReservation
 void Member::reserveBook(LibraryResource* r) {
     if (r->isAvailable()) {
         cout << "\033[32m\"" << r->getTitle() << "\033[32m\" is available — just issue it.\n\033[0m";

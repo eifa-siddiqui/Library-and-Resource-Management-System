@@ -30,7 +30,7 @@ public:
 
     // Returns true if input matches the stored password
     bool checkPassword(const std::string& input) const;
-
+//& is used to refer the original string otherwise extra copy will be made
     // Getters
     std::string getId()        const;
     std::string getFirstName() const;
@@ -43,4 +43,5 @@ public:
     void setPassword(const std::string& p);
     void setEmail(const std::string& e);
     void setAddress(const std::string& a);
+    // & so no copy will be made and const so that the paramatere would not get change 
 };

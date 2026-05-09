@@ -8,7 +8,7 @@ enum class BookCondition {
     LOST
 };
 
-// Membership tier — plain enum (not enum class) so baap_code.cpp's
+// Membership tier — plain enum (not enum class) so rev_mem.cpp's
 // Member class can initialize with status(STANDARD) without a scope prefix.
 enum MembershipStatus {
     STANDARD,

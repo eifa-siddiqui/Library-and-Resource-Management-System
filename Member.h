@@ -12,6 +12,7 @@ class LibraryResource; // forward declaration — full header in Member.cpp
 class Member : public User {
 private:
     double                      balance;
+    double                      pending_fine; //when fine will be greater than present balance
     MembershipStatus            status;
     std::vector<BorrowRecord*>  borrowedBooks; // owned
 
@@ -26,7 +27,7 @@ public:
     ~Member(); // deletes all BorrowRecord* in borrowedBooks
 
     // Overrides — required by abstract User
-    void        displayDashboard() const override;
+    void        displayDashboard() const override; //overrides the pure virtual funct of user
     std::string getRole()          const override; // returns "MEMBER"
 
     // ---------- Balance ----------

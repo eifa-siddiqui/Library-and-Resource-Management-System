@@ -28,7 +28,7 @@ LibraryResource::LibraryResource(const string& isbn, const string& title,
 
 LibraryResource::~LibraryResource() {}
 
-// ─── Setters (taken directly from baap_code.cpp — logic unchanged) ────────────
+// ─── Setters (taken directly from rev_mem.cpp — logic is same ) ────────────
 
 void LibraryResource::setAvailable(bool val) { isavailable = val; }
 bool LibraryResource::isAvailable()          const { return isavailable; }
@@ -134,7 +134,7 @@ int LibraryResource::getReservationCount() const {
 // ─── operator== ───────────────────────────────────────────────────────────────
 // Case-insensitive substring match against isbn, title, writer, genre.
 // Used by BookDatabase::searchByKeyword for cross-field search.
-// Extends baap_code.cpp's exact-match version to support partial queries.
+// Extends rev_mem.cpp's exact-match version to support partial queries.
 
 bool LibraryResource::operator==(const string& query) const {
     string q = toLower(query);
