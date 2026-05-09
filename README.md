@@ -532,6 +532,10 @@ These concepts improve:
 ## Resources:
 
 1) https://www.geeksforgeeks.org/cpp/library-management-system-2/
--Based on library standards and technical documentation, we added an ISBN attribute to each book. This helps make book searching easier and keeps book information organized and standardized.
+* Based on library standards and technical documentation, we added an ISBN attribute to each book. This helps make book searching easier and keeps book information organized and standardized.
 
-2) 
+2) https://github.com/abdulsamie10/Library-Management-System
+* We added a balance system that lets students check their balance and deposit money while keeping financial records updated.
+
+3) C how to program with an introduction to C++ by Paul Dietal and Harvey Dietal
+* For basic C++ concept's understanding

@@ -7,11 +7,10 @@
 class LibraryResource;
 
 // Tracks a single borrow transaction between a Member and a LibraryResource.
-// ERD corrections applied: added memberID, isReturned, returnDate.
 class BorrowRecord {
 private:
     std::string      memberID;    // which member borrowed this resource
-    LibraryResource* resource;    // observing pointer — BookDatabase owns the resource
+    LibraryResource* resource;   
     time_t           issueDate;
     time_t           dueDate;
     bool             isReturned;  // false until Admin processes the return

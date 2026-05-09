@@ -138,10 +138,13 @@ static void showResourceDetails(LibraryResource* r) {
     }
 
     const auto& reviews = r->getReviews();
-    if (!reviews.empty()) {
-        cout << BLU "Reviews  : " RST << reviews.size() << " review(s)\n";
+    int approvedCount = 0;
+    for (const Review& rv : reviews) if (rv.isApproved()) approvedCount++;
+    if (approvedCount > 0) {
+        cout << BLU "Reviews  : " RST << approvedCount << " approved review(s)\n";
         for (const Review& rv : reviews)
-            cout << "  [" << rv.getRating() << "/5] " << rv.getComment() << "\n";
+            if (rv.isApproved())
+                cout << "  [" << rv.getRating() << "/5] " << rv.getComment() << "\n";
     }
 }
 
@@ -562,7 +565,8 @@ void LibrarySystem::memberMenu(Member* m) {
         cout << CYN "[7]  View Balance\n" RST;
         cout << CYN "[8]  Deposit Amount\n" RST;
         cout << CYN "[9]  Write a Review\n" RST;
-        cout << CYN "[10] Logout\n" RST;
+        cout << CYN "[10] View My Dashboard\n" RST;
+        cout << CYN "[11] Logout\n" RST;
         int choice = readInt(MAG "Enter choice: " RST);
 
         if (choice == 1) {
@@ -616,7 +620,8 @@ void LibrarySystem::memberMenu(Member* m) {
             r->addReview(Review("R" + to_string(++reviewCount), m->getId(), isbn, rating, comment));
             cout << GRN "Review submitted.\n" RST;
         }
-        else if (choice == 10) { cout << YLW "Logged out.\n" RST; return; }
+        else if (choice == 10) { m->displayDashboard(); }
+        else if (choice == 11) { cout << YLW "Logged out.\n" RST; return; }
         else cout << RED "Invalid choice.\n" RST;
     }
 }
@@ -711,11 +716,13 @@ void LibrarySystem::adminMenu(Admin* a) {
         cout << CYN "[4] View Overdue Dashboard\n" RST;
         cout << CYN "[5] Generate Member Report\n" RST;
         cout << CYN "[6] Generate Resource Report\n" RST;
-        cout << CYN "[7] Logout\n" RST;
+        cout << CYN "[7] Manage Reviews\n" RST;
+        cout << CYN "[8] View My Dashboard\n" RST;
+        cout << CYN "[9] Logout\n" RST;
         int choice = readInt(MAG "Enter choice: " RST);
 
-        if      (choice == 1) manageMembersMenu(a);
-        else if (choice == 2) manageResourcesMenu(a);
+        if      (choice == 1) manageMembersMenu();
+        else if (choice == 2) manageResourcesMenu();
         else if (choice == 3) processReturnFlow(a);
         else if (choice == 4) viewOverdueFlow();
         else if (choice == 5) {
@@ -739,7 +746,9 @@ void LibrarySystem::adminMenu(Admin* a) {
             if (!targets.empty()) a->generateMemberReport(targets, "");
         }
         else if (choice == 6) a->generateResourceReport(getAllResources(), getAllMembers(), "data/resource_report.txt");
-        else if (choice == 7) { cout << GRN "Logged out.\n" RST; return; }
+        else if (choice == 7) reviewsMenu();
+        else if (choice == 8) { a->displayDashboard(); }
+        else if (choice == 9) { cout << GRN "Logged out.\n" RST; return; }
         else cout << RED "Invalid choice.\n" RST;
     }
 }
@@ -748,8 +757,7 @@ void LibrarySystem::adminMenu(Admin* a) {
 // manageMembersMenu()
 // =============================================================================
 
-void LibrarySystem::manageMembersMenu(Admin* a) {
-    (void)a;
+void LibrarySystem::manageMembersMenu() {
     while (true) {
         cout << YLW "\n--- Manage Members ---\n" RST;
         cout << CYN "[1] Add Member\n" RST;
@@ -872,8 +880,7 @@ void LibrarySystem::adminMemberSearch() {
 // manageResourcesMenu()
 // =============================================================================
 
-void LibrarySystem::manageResourcesMenu(Admin* a) {
-    (void)a;
+void LibrarySystem::manageResourcesMenu() {
     while (true) {
         cout << YLW "\n--- Manage Resources ---\n" RST;
         cout << CYN "[1] Add Resource\n" RST;
@@ -937,49 +944,73 @@ LibraryResource* LibrarySystem::promptNewResource() {
     if (type == 0) return nullptr;
     if (type < 1 || type > 5) { cout << RED "Invalid type.\n" RST; return nullptr; }
 
-    // Category is determined automatically by type:
-    // Science/Magazine/Reference/Digital = Non-Fiction, Literature = Fiction
     BookCategory cat = (type == 2) ? BookCategory::FICTION : BookCategory::NON_FICTION;
 
-    string isbn   = readLine(MAG "ISBN            : " RST);
-    {
+    // Helper: re-prompts until a non-empty, non-whitespace string is entered
+    auto readField = [&](const string& prompt) -> string {
+        while (true) {
+            string val = readLine(prompt);
+            if (val.empty()) { cout << RED "This field cannot be empty. Try again.\n" RST; continue; }
+            bool allSpaces = true;
+            for (char c : val) if (c != ' ') { allSpaces = false; break; }
+            if (allSpaces) { cout << RED "This field cannot be only spaces. Try again.\n" RST; continue; }
+            return val;
+        }
+    };
+
+    // ISBN — re-prompt until 13 digits and not already registered
+    string isbn;
+    while (true) {
+        isbn = readLine(MAG "ISBN             : " RST);
+        if (isbn.size() != 13) {
+            cout << RED "ISBN must be exactly 13 digits. You entered " << isbn.size() << ". Try again.\n" RST;
+            continue;
+        }
+        bool allDigits = true;
+        for (char c : isbn) if (c < '0' || c > '9') { allDigits = false; break; }
+        if (!allDigits) { cout << RED "ISBN must contain digits only. Try again.\n" RST; continue; }
         LibraryResource* existing = findResource(isbn);
         if (existing) {
-            cout << RED "\nISBN " RST << isbn << RED " is already registered to:\n" RST;
-            cout << BLU "  Title : " RST << existing->getTitle()  << "\n";
-            cout << BLU "  Author: " RST << existing->getWriter() << "\n";
-            cout << BLU "  Type  : " RST << existing->getType()   << "\n";
-            cout << YLW "Each edition or format must have its own unique ISBN. Use a different ISBN.\n" RST;
-            return nullptr;
+            cout << RED "ISBN already registered to: " RST << "\"" << existing->getTitle() << "\" — use a different ISBN.\n";
+            continue;
         }
+        break;
     }
-    string title  = readLine(MAG "Title           : " RST);
-    string writer = readLine(MAG "Author/Writer   : " RST);
-    int    year   = readInt(MAG  "Publication Year: " RST);
-    string origin = readLine(MAG "Country of Origin: " RST);
-    string lang   = readLine(MAG "Language        : " RST);
-    string genre  = readLine(MAG "Genre           : " RST);
+
+    string title  = readField(MAG "Title            : " RST);
+    string writer = readField(MAG "Author/Writer    : " RST);
+
+    // Year — re-prompt until in valid range
+    int year;
+    while (true) {
+        year = readInt(MAG "Publication Year : " RST);
+        if (year >= 1000 && year <= 2026) break;
+        cout << RED "Year must be between 1000 and 2026. Try again.\n" RST;
+    }
+
+    string origin = readField(MAG "Country of Origin: " RST);
+    string lang   = readField(MAG "Language         : " RST);
+    string genre  = readLine(MAG  "Genre            : " RST);
 
     if (type == 1) {
-        string field = readLine(MAG "Scientific Field: " RST);
+        string field = readLine(MAG "Scientific Field : " RST);
         return new ScienceBook(isbn, title, writer, year, origin, lang, genre, cat, field);
     }
     if (type == 2) {
-        string era = readLine(MAG "Literary Era    : " RST);
+        string era = readLine(MAG "Literary Era     : " RST);
         return new LiteratureBook(isbn, title, writer, year, origin, lang, genre, cat, era);
     }
     if (type == 3) {
-        int    issue = readInt(MAG  "Issue Number    : " RST);
+        int    issue = readInt(MAG  "Issue Number     : " RST);
         string month = readLine(MAG "Publication Month: " RST);
         return new Magazine(isbn, title, writer, year, origin, lang, genre, cat, issue, month);
     }
     if (type == 4) {
-        int edition = readInt(MAG "Edition         : " RST);
+        int edition = readInt(MAG "Edition          : " RST);
         return new ReferenceBook(isbn, title, writer, year, origin, lang, genre, cat, edition);
     }
-    // type == 5: Digital Media
     float  runtime = (float)readInt(MAG "Runtime (minutes): " RST);
-    string format  = readLine(MAG "File Format (e.g. MP4): " RST);
+    string format  = readLine(MAG "File Format      : " RST);
     return new DigitalMedia(isbn, title, writer, year, origin, lang, genre, cat, runtime, format);
 }
 
@@ -1043,4 +1074,48 @@ void LibrarySystem::viewOverdueFlow() const {
         }
     }
     if (!found) cout << GRN "No overdue resources.\n" RST;
+}
+
+// =============================================================================
+// reviewsMenu() — admin approves or rejects pending member reviews
+// =============================================================================
+
+void LibrarySystem::reviewsMenu() {
+    // collect all pending reviews across every resource
+    vector<pair<LibraryResource*, int>> pending; // resource + index in its review list
+    for (LibraryResource* r : resources) {
+        const auto& revs = r->getReviews();
+        for (int i = 0; i < (int)revs.size(); i++)
+            if (!revs[i].isApproved())
+                pending.push_back({r, i});
+    }
+
+    if (pending.empty()) {
+        cout << GRN "No pending reviews.\n" RST;
+        return;
+    }
+
+    cout << YLW "\n=== Pending Reviews ===\n" RST;
+    for (int i = 0; i < (int)pending.size(); i++) {
+        LibraryResource* r  = pending[i].first;
+        const Review&    rv = r->getReviews()[pending[i].second];
+        cout << YLW "\n[" << i + 1 << "] " RST
+             << "\"" << r->getTitle() << "\" (ISBN: " << r->getIsbn() << ")\n"
+             << CYN "    Member  : " RST << rv.getMemberID() << "\n"
+             << CYN "    Rating  : " RST << rv.getRating() << "/5\n"
+             << CYN "    Comment : " RST << rv.getComment() << "\n"
+             << MAG "    [1] Approve  [2] Reject  [3] Skip\n" RST;
+
+        int choice = readInt(MAG "    Choice: " RST);
+        if (choice == 1) {
+            r->approveReview(rv.getReviewID());
+            cout << GRN "    Review approved.\n" RST;
+        } else if (choice == 2) {
+            r->rejectReview(rv.getReviewID());
+            cout << RED "    Review rejected.\n" RST;
+        } else {
+            cout << YLW "    Skipped.\n" RST;
+        }
+    }
+    cout << YLW "\n=== Done ===\n" RST;
 }

@@ -21,7 +21,8 @@ protected:
     std::string  genre;
     BookCategory category;
     bool         isavailable;          // default true
-    std::queue<Member*> reservationList; // observing pointers — never deleted here
+    Member*      heldFor;              // non-null = book is on hold for this member only
+    std::queue<Member*> reservationList; 
     std::vector<Review>  reviews;
 
 public:
@@ -64,6 +65,8 @@ public:
     // ---------- Review management ----------
     void addReview(const Review& r);
     const std::vector<Review>& getReviews() const;
+    void approveReview(const std::string& reviewID);
+    void rejectReview(const std::string& reviewID);
 
     // ---------- Reservation queue ----------
     void    addToReservation(Member* m);
@@ -71,14 +74,18 @@ public:
     bool    hasReservation()     const;
     int     getReservationCount() const; // queue size — used to display position to reserver
 
+    // ---------- Hold ----------
+    void    setHoldFor(Member* m);    // locks book to one member after a return
+    Member* getHeldFor()         const;
+    void    clearHold();              // called after the held member successfully borrows
+
     // Operator overloading — case-insensitive substring search across isbn/title/writer/genre.
-    // Fulfils the operator overloading OOP requirement.
     bool operator==(const std::string& query) const;
 
     // Displays common fields; overridden in each subclass to add type-specific fields.
     virtual void displayinfo() const;
 
-    // Pure virtual — each subclass returns its type tag used for file persistence.
+    // Pure virtual — each subclass returns its type tag
     // This makes LibraryResource abstract (cannot be instantiated directly).
     virtual std::string getType() const = 0;
 };

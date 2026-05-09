@@ -9,7 +9,7 @@ class BorrowRecord;
 class LibraryResource;
 
 // Admin extends User with library management capabilities.
-// Admin has no extra stored data — its authority comes from its methods.
+// Admin has no extra attribute  — its authority comes from its methods.
 // Collection management (adding/removing users and resources) is handled by
 // LibrarySystem, which owns the vectors. Admin only does what requires
 // admin-level authority: processing returns, generating reports.
@@ -33,7 +33,7 @@ public:
 
     void generateFineNotice(BorrowRecord* record, double fine);
 
-    // ---------- Reports (write to files) ----------
+    // ---------- Reports ----------
     void generateMemberReport(const std::vector<Member*>& members,
                               const std::string& fileName);
     // members needed to cross-reference who currently holds each resource

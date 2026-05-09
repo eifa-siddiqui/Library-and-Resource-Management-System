@@ -18,9 +18,8 @@ using namespace std;
 static string formatDate(time_t t) {
     if (t == 0) return "N/A";
     char buf[16];
-    struct tm* tm_info = localtime(&t);
-    strftime(buf, sizeof(buf), "%Y-%m-%d", tm_info);
-    return string(buf);
+    strftime(buf, sizeof(buf), "%Y-%m-%d", localtime(&t));
+    return buf;
 }
 
 // Converts MembershipStatus enum to display string
@@ -61,14 +60,16 @@ void Admin::processReturn(Member& member, BorrowRecord* record,
     // Mark the resource available again
     record->getResource()->setAvailable(true);
 
-    // Notify the next person in the reservation queue
+    // If someone has reserved this book, lock it to them so nobody else can issue it first
     if (record->getResource()->hasReservation()) {
         Member* next = record->getResource()->nextReservation();
+        record->getResource()->setHoldFor(next);
         cout << GRN "RESERVATION NOTICE: \"" RST
              << record->getResource()->getTitle()
-             << GRN "\" is now available.\n" RST
-             << CYN "Next in queue: " RST << next->getFirstName()
-             << " " << next->getLastName() << " - please notify them.\n";
+             << GRN "\" is now on hold.\n" RST
+             << CYN "Held for: " RST << next->getFirstName()
+             << " " << next->getLastName()
+             << " (" << next->getEmail() << ") - please notify them.\n";
     }
 }
 

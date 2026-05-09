@@ -13,7 +13,7 @@ private:
     std::vector<LibraryResource*> resources;
     User*                         currentUser;
 
-    // File I/O (pipe-delimited text files)
+    // File I/O 
     void saveUsers(const std::string& filename)     const;
     void loadUsers(const std::string& filename);
     void saveResources(const std::string& filename) const;
@@ -65,10 +65,11 @@ private:
     void memberMenu(Member* m);
     void adminMenu(Admin* a);
 
-    void manageMembersMenu(Admin* a);
-    void manageResourcesMenu(Admin* a);
+    void manageMembersMenu();
+    void manageResourcesMenu();
     void processReturnFlow(Admin* a);
-    void viewOverdueFlow() const;
+    void viewOverdueFlow()  const;
+    void reviewsMenu();
 
     void searchMenu();           // resource search (used by both member and admin)
     void adminMemberSearch();    // member search (admin only)

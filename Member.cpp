@@ -1,12 +1,20 @@
 #include "Member.h"
 #include "LibraryResource.h"
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 #include <ctime>
 #include <stdexcept>
 using namespace std;
 
+static string fmtFine(double v) {
+    ostringstream s;
+    s << fixed << setprecision(2) << v;
+    return s.str();
+}
+
 // Returns true if the given timestamp falls on today's calendar date
-//it is helper funct and canbe used within this cpp file only
+//it is helper funct and can be used within this cpp file only
 static bool isToday(time_t t) {
     time_t now       = time(nullptr);
     tm*    todayTm   = localtime(&now);
@@ -36,6 +44,8 @@ void Member::displayDashboard() const {
     cout << "\033[36mName    : \033[0m" << firstName << " " << lastName << "\n";
     cout << "\033[36mEmail   : \033[0m" << email << "\n";
     cout << "\033[36mBalance : PKR \033[0m" << balance << "\n";
+    if (pending_fine > 0)
+        cout << "\033[31mOutstanding Fine: PKR \033[0m" << fmtFine(pending_fine) << "\n";
     int active = 0;
     for (BorrowRecord* r : borrowedBooks)
         if (!r->getIsReturned()) active++;
@@ -50,19 +60,35 @@ string Member::getRole() const { return "MEMBER"; }
 void Member::depositAmount(double amount) {
     if (amount <= 0)
         throw invalid_argument("Deposit amount must be greater than zero.");
+    if (pending_fine > 0) {
+        if (amount >= pending_fine) {
+            amount -= pending_fine;
+            cout << "PKR " << fmtFine(pending_fine) << " deducted to clear outstanding fine.\n";
+            pending_fine = 0;
+        } else {
+            pending_fine -= amount;
+            cout << "PKR " << amount << " applied to outstanding fine. Remaining fine: PKR " << fmtFine(pending_fine) << "\n";
+            return;
+        }
+    }
     balance += amount;
-    cout << "PKR " << amount << " deposited. New balance: PKR " << balance << endl;
+    cout << "PKR " << amount << " deposited. New balance: PKR " << balance << "\n";
 }
 
-double Member::getBalance()          const { return balance; }
-MembershipStatus Member::getStatus() const { return status; }
-void Member::setStatus(MembershipStatus s) { status = s; }
-void Member::setBalance(double amount)     { balance = amount; }
+double Member::getBalance()            const { return balance; }
+double Member::getPendingFine()        const { return pending_fine; }
+void Member::setPendingFine(double amount)   { pending_fine = amount; }
+MembershipStatus Member::getStatus()   const { return status; }
+void Member::setStatus(MembershipStatus s)   { status = s; }
+void Member::setBalance(double amount)       { balance = amount; }
 
 void Member::deductBalance(double amount) {
     if (amount >= balance) {
-        cout << "Fine (PKR " << amount << ") exceeds balance. Balance set to 0.\n";
+        double excess = amount - balance;
+        pending_fine += excess;
         balance = 0;
+        cout << "Fine (PKR " << amount << ") exceeds balance. Balance set to 0."
+             << " Outstanding fine: PKR " << fmtFine(pending_fine) << "\n";
     } else {
         balance -= amount;
         cout << "\033[35mPKR " << amount << "\033[35m deducted. Remaining balance: PKR \033[0m" << balance << "\n";
@@ -71,10 +97,8 @@ void Member::deductBalance(double amount) {
 
 // ─── Borrow management ────────────────────────────────────────────────────────
 
-// issueBook — core logic from rev_mem.cpp, adapted:
 //   • Checks daily borrow limit (throws BorrowLimitException if >= 2 today)
 //   • Uses 14-day borrow period instead of 7
-//   • Passes member ID to BorrowRecord (required for file persistence in PR 5)
 bool Member::hasOverdueBooks() const {
     time_t now = time(nullptr);
     for (BorrowRecord* r : borrowedBooks)
@@ -84,6 +108,9 @@ bool Member::hasOverdueBooks() const {
 }
 
 void Member::issueBook(LibraryResource* r) {
+    if (pending_fine > 0)
+        throw runtime_error("\033[31mYou have an outstanding fine of PKR " + fmtFine(pending_fine) + ". Clear it before borrowing.\033[0m");
+
     if (hasOverdueBooks())
         throw runtime_error("\033[31mYou have overdue book(s). Return them before borrowing more.\033[0m");
 
@@ -93,11 +120,15 @@ void Member::issueBook(LibraryResource* r) {
     if (!r->isAvailable())
         throw runtime_error("\033[31m\"\033[0m" + r->getTitle() + "\033[31m\" is not available.\033[0m");
 
+    if (r->getHeldFor() != nullptr && r->getHeldFor() != this)
+        throw runtime_error("\033[31m\"\033[0m" + r->getTitle() + "\033[31m\" is on hold for another member.\033[0m");
+
     time_t now     = time(nullptr);
     time_t dueDate = now + 14 * 24 * 60 * 60; // 14-day borrow period
 
     BorrowRecord* record = new BorrowRecord(id, r, now, dueDate);
     borrowedBooks.push_back(record);
+    r->clearHold();
     r->setAvailable(false);
     cout << "\033[32m\"" << r->getTitle() << "\" issued successfully. Due in 14 days.\n\033[0m";
 
@@ -129,8 +160,11 @@ void Member::returnBook(const string& isbn) {
          << "\".\033[34m Admin will complete the process.\n\033[0m";
 }
 
-// reserveBook — availability check from rev_mem.cpp; adapted to use addToReservation
 void Member::reserveBook(LibraryResource* r) {
+    if (pending_fine > 0) {
+        cout << "\033[31mYou have an outstanding fine of PKR " << fmtFine(pending_fine) << ". Clear it before making reservations.\033[0m\n";
+        return;
+    }
     if (hasOverdueBooks()) {
         cout << "\033[31mYou have overdue book(s). Return them before making reservations.\033[0m\n";
         return;
