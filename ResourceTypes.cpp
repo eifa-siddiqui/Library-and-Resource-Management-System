@@ -18,6 +18,7 @@ ScienceBook::ScienceBook(const string& isbn,  const string& title,
 void ScienceBook::displayinfo() const {
     cout << "[SCIENCE] " << title << " by " << writer
          << " (" << publicationYear << ")"
+         << " | ISBN: " << isbn
          << " | Field: " << scientificField
          << " | Available: " << (isavailable ? "Yes" : "No") << endl;
 }
@@ -41,6 +42,7 @@ LiteratureBook::LiteratureBook(const string& isbn,  const string& title,
 void LiteratureBook::displayinfo() const {
     cout << "[LITERATURE] " << title << " by " << writer
          << " (" << publicationYear << ")"
+         << " | ISBN: " << isbn
          << " | Era: " << literaryEra
          << " | Available: " << (isavailable ? "Yes" : "No") << endl;
 }
@@ -63,7 +65,8 @@ Magazine::Magazine(const string& isbn,  const string& title,
 
 void Magazine::displayinfo() const {
     cout << "[MAGAZINE] " << title
-         << " — Issue " << issueNumber
+         << " | ISBN: " << isbn
+         << " | Issue " << issueNumber
          << " (" << publicationMonth << " " << publicationYear << ")"
          << " | Available: " << (isavailable ? "Yes" : "No") << endl;
 }
@@ -87,6 +90,7 @@ ReferenceBook::ReferenceBook(const string& isbn,  const string& title,
 
 void ReferenceBook::displayinfo() const {
     cout << "[REFERENCE] " << title << " by " << writer
+         << " | ISBN: " << isbn
          << " | Edition: " << edition
          << " | Available: " << (isavailable ? "Yes" : "No") << endl;
 }
@@ -109,6 +113,7 @@ DigitalMedia::DigitalMedia(const string& isbn,  const string& title,
 
 void DigitalMedia::displayinfo() const {
     cout << "[DIGITAL] " << title << " by " << writer
+         << " | ISBN: " << isbn
          << " | Runtime: " << runTimeMinutes << " min"
          << " | Format: " << fileFormat
          << " | Available: " << (isavailable ? "Yes" : "No") << endl;

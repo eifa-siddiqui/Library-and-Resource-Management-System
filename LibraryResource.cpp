@@ -14,7 +14,7 @@ static string toLower(const string& s) {
 // ─── Constructors / Destructor ────────────────────────────────────────────────
 
 LibraryResource::LibraryResource()
-    : publicationYear(0), category(BookCategory::NON_FICTION), isavailable(true)
+    : publicationYear(0), category(BookCategory::NON_FICTION), isavailable(true), heldFor(nullptr)
 {}
 
 LibraryResource::LibraryResource(const string& isbn, const string& title,
@@ -23,7 +23,7 @@ LibraryResource::LibraryResource(const string& isbn, const string& title,
                                   const string& genre, BookCategory category)
     : isbn(isbn), title(title), writer(writer), publicationYear(year),
       origin(origin), language(language), genre(genre),
-      category(category), isavailable(true)
+      category(category), isavailable(true), heldFor(nullptr)
 {}
 
 LibraryResource::~LibraryResource() {}
@@ -105,7 +105,17 @@ void LibraryResource::addReview(const Review& r) {
 }
 
 const vector<Review>& LibraryResource::getReviews() const {
-    return reviews; //this pointer used to return
+    return reviews;
+}
+
+void LibraryResource::approveReview(const string& reviewID) {
+    for (Review& rv : reviews)
+        if (rv.getReviewID() == reviewID) { rv.approve(); return; }
+}
+
+void LibraryResource::rejectReview(const string& reviewID) {
+    for (Review& rv : reviews)
+        if (rv.getReviewID() == reviewID) { rv.reject(); return; }
 }
 
 // ─── Reservation queue ────────────────────────────────────────────────────────
@@ -129,10 +139,15 @@ int LibraryResource::getReservationCount() const {
     return static_cast<int>(reservationList.size());
 }
 
+// ─── Hold ─────────────────────────────────────────────────────────────────────
+
+void    LibraryResource::setHoldFor(Member* m) { heldFor = m; }
+Member* LibraryResource::getHeldFor()    const { return heldFor; }
+void    LibraryResource::clearHold()           { heldFor = nullptr; }
+
 // ─── operator== ───────────────────────────────────────────────────────────────
 // Case-insensitive substring match against isbn, title, writer, genre.
-// Used by BookDatabase::searchByKeyword for cross-field search.
-// Extends rev_mem.cpp's exact-match version to support partial queries.
+// Used by searchByKeyword for cross-field search.
 
 bool LibraryResource::operator==(const string& query) const {
     string q = toLower(query);

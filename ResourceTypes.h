@@ -5,7 +5,7 @@
 // The only job of each subclass is to:
 //   1. Store its type-specific extra attribute(s)
 //   2. Override displayinfo() to show those extra attributes
-//   3. Override getType() to return its file-persistence type tag
+//   3. Override getType() to return its type tag
 
 // ─────────────────────────────────────────────────────────────────────────────
 class ScienceBook : public LibraryResource {

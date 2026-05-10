@@ -1,4 +1,5 @@
 #include "FineUtility.h"
+using namespace std;
 
 double FineUtility::calculateFine(int lateDays, BookCondition condition) {
     double fine = lateDays * 10.0; // Base: 10 PKR per day

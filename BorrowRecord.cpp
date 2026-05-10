@@ -1,4 +1,5 @@
 #include "BorrowRecord.h"
+using namespace std;
 
 BorrowRecord::BorrowRecord()
     : memberID(""), resource(nullptr),
@@ -6,7 +7,7 @@ BorrowRecord::BorrowRecord()
       isReturned(false), returnDate(0)
 {}
 
-BorrowRecord::BorrowRecord(const std::string& memberID,
+BorrowRecord::BorrowRecord(const string& memberID,
                            LibraryResource* resource,
                            time_t issueDate,
                            time_t dueDate)
@@ -28,7 +29,7 @@ int BorrowRecord::calculateLateDays(time_t currentDate) const {
 }
 
 // --- Getters ---
-std::string      BorrowRecord::getMemberID()   const { return memberID;   }
+string           BorrowRecord::getMemberID()   const { return memberID;   }
 LibraryResource* BorrowRecord::getResource()   const { return resource;   }
 time_t           BorrowRecord::getIssueDate()  const { return issueDate;  }
 time_t           BorrowRecord::getDueDate()    const { return dueDate;    }
@@ -36,7 +37,7 @@ bool             BorrowRecord::getIsReturned() const { return isReturned; }
 time_t           BorrowRecord::getReturnDate() const { return returnDate; }
 
 // --- Setters ---
-void BorrowRecord::setMemberID(const std::string& id) { memberID   = id; }
+void BorrowRecord::setMemberID(const string& id) { memberID   = id; }
 void BorrowRecord::setResource(LibraryResource* r)    { resource   = r;  }
 void BorrowRecord::setIssueDate(time_t t)             { issueDate  = t;  }
 void BorrowRecord::setDueDate(time_t t)               { dueDate    = t;  }

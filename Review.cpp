@@ -1,10 +1,11 @@
 #include "Review.h"
+using namespace std;
 
-Review::Review(const std::string& reviewID,
-               const std::string& memberID,
-               const std::string& resourceISBN,
+Review::Review(const string& reviewID,
+               const string& memberID,
+               const string& resourceISBN,
                int rating,
-               const std::string& comment)
+               const string& comment)
     : reviewID(reviewID),
       memberID(memberID),
       resourceISBN(resourceISBN),
@@ -17,10 +18,10 @@ Review::Review(const std::string& reviewID,
 void Review::approve() { approved = true;  }
 void Review::reject()  { approved = false; }
 
-std::string Review::getReviewID()     const { return reviewID;     }
-std::string Review::getMemberID()     const { return memberID;     }
-std::string Review::getResourceISBN() const { return resourceISBN; }
+string Review::getReviewID()     const { return reviewID;     }
+string Review::getMemberID()     const { return memberID;     }
+string Review::getResourceISBN() const { return resourceISBN; }
 int         Review::getRating()       const { return rating;       }
-std::string Review::getComment()      const { return comment;      }
+string Review::getComment()      const { return comment;      }
 time_t      Review::getCreatedAt()    const { return createdAt;    }
 bool        Review::isApproved()      const { return approved;     }
