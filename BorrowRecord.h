@@ -2,7 +2,7 @@
 #include <string>
 #include <ctime>
 
-// Forward declaration — BorrowRecord observes a LibraryResource but does not own it.
+// Forward declaration — BorrowRecord observes a LibraryResource but does not own it
 // The full definition lives in LibraryResource.h (included only in .cpp files that need it).
 class LibraryResource;
 
